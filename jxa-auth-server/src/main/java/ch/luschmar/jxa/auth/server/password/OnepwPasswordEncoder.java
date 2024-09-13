@@ -8,6 +8,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import static org.bouncycastle.crypto.generators.SCrypt.generate;
 
 public class OnepwPasswordEncoder implements PasswordEncoder {
+    public static final String ONEPW_ID = "onepw";
+
     private final BytesHKDFConverter<VerifyHashInput> bytesHKDFConverter = new BytesHKDFConverter<>();
     private final RandomComponent randomComponent;
 
@@ -38,7 +40,7 @@ public class OnepwPasswordEncoder implements PasswordEncoder {
 
     public record OnePw(String hexAuthSalt, String hexVerifyHash) {
         public OnePw(String hexAuthSaltAndVerifyHash) {
-            this(hexAuthSaltAndVerifyHash.replace("{onepw}", "").split(":", 2)[0], hexAuthSaltAndVerifyHash.split(":", 2)[1]);
+            this(hexAuthSaltAndVerifyHash.replace("{%s}".formatted(ONEPW_ID), "").split(":", 2)[0], hexAuthSaltAndVerifyHash.split(":", 2)[1]);
         }
 
         @Override

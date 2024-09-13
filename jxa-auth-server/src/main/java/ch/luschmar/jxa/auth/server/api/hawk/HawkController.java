@@ -1,6 +1,6 @@
 package ch.luschmar.jxa.auth.server.api.hawk;
 
-import ch.luschmar.jxa.auth.server.api.account.CreateRequest;
+import ch.luschmar.jxa.auth.server.api.account.create.CreateRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;

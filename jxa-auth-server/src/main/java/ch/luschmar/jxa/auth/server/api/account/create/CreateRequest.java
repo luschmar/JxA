@@ -1,4 +1,4 @@
-package ch.luschmar.jxa.auth.server.api.account;
+package ch.luschmar.jxa.auth.server.api.account.create;
 
 
 import jakarta.validation.constraints.Email;

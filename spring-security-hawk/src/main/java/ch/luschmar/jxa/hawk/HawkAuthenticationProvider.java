@@ -18,8 +18,6 @@ public class HawkAuthenticationProvider implements AuthenticationProvider {
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         if (authentication instanceof HawkAuthenticationToken hat) {
-
-
             final List<GrantedAuthority> grantedAuths = new ArrayList<>();
             grantedAuths.add(new SimpleGrantedAuthority("ROLE_HAWKAUTHENTICATED"));
             final UserDetails principal = new User("name", "password", grantedAuths);

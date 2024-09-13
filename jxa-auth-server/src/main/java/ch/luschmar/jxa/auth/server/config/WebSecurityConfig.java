@@ -19,9 +19,12 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import java.util.Map;
 
+import static ch.luschmar.jxa.auth.server.password.OnepwPasswordEncoder.ONEPW_ID;
+
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
+
     @Bean
     public UserDetailsService userDetailsService(JxaUserRepository jxaUserRepository) {
         return new JaxUserDetailService(jxaUserRepository);
@@ -34,17 +37,15 @@ public class WebSecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder(RandomComponent randomComponent) {
-        var idForEncode = "onepw";
-        return new DelegatingPasswordEncoder(idForEncode, Map.of(idForEncode, new OnepwPasswordEncoder(randomComponent)));
+        return new DelegatingPasswordEncoder(ONEPW_ID, Map.of(ONEPW_ID, new OnepwPasswordEncoder(randomComponent)));
     }
 
     @Bean
     public AuthenticationManager authenticationManager(
             UserDetailsService userDetailsService,
             PasswordEncoder passwordEncoder) {
-        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
+        var authenticationProvider = new DaoAuthenticationProvider(passwordEncoder);
         authenticationProvider.setUserDetailsService(userDetailsService);
-        authenticationProvider.setPasswordEncoder(passwordEncoder);
 
         return new ProviderManager(authenticationProvider);
     }

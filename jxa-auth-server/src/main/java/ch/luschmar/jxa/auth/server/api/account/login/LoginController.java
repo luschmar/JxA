@@ -1,4 +1,4 @@
-package ch.luschmar.jxa.auth.server.api.account;
+package ch.luschmar.jxa.auth.server.api.account.login;
 
 import ch.luschmar.jxa.auth.server.data.JxaUserRepository;
 import ch.luschmar.jxa.auth.server.password.OnepwPasswordEncoder;
@@ -16,8 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class LoginController {
     private final AuthenticationManager authenticationManager;
     private final JxaUserRepository jxaUserRepository;
-
-
+    
     public LoginController(JxaUserRepository jxaUserRepository, AuthenticationManager authenticationManager) {
         this.jxaUserRepository = jxaUserRepository;
         this.authenticationManager = authenticationManager;
@@ -30,7 +29,6 @@ public class LoginController {
 
         var authenticationRequest = UsernamePasswordAuthenticationToken.unauthenticated(request.email(),
                 onePw.hexVerifyHash());
-        // TODO:
         var authenticationResponse = authenticationManager.authenticate(authenticationRequest);
         return "success";
     }
