@@ -3,7 +3,7 @@ package ch.luschmar.jxa.crypto;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.codec.Hex;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class HKDFConverterTest {
     @Test
@@ -15,7 +15,7 @@ class HKDFConverterTest {
 
 
         var keyFetchTokenConv = new FactoryHKDFConverter<>(new BytesHKDFConverter<KeyFetchTokenInput>(), new KeyFetchTokenResultFactory());
-        var keyFetchRes =  keyFetchTokenConv.apply(new KeyFetchTokenInput("808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9f"));
+        var keyFetchRes = keyFetchTokenConv.apply(new KeyFetchTokenInput("808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9f"));
 
         assertEquals("3d0a7c02a15a62a2882f76e39b6494b500c022a8816e048625a495718998ba60", keyFetchRes.hexTokenId());
         assertEquals("87b8937f61d38d0e29cd2d5600b3f4da0aa48ac41de36a0efe84bb4a9872ceb7", keyFetchRes.hexReqHMACKey());

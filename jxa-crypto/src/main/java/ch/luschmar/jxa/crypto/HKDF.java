@@ -39,6 +39,7 @@ package ch.luschmar.jxa.crypto;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
@@ -56,10 +57,10 @@ public class HKDF {
     /**
      * Used for conversion in cases in which you *know* the encoding exists.
      */
-    public static final byte[] bytes(String in) {
+    public static byte[] bytes(String in) {
         try {
-            return in.getBytes("UTF-8");
-        } catch (java.io.UnsupportedEncodingException e) {
+            return in.getBytes(StandardCharsets.UTF_8);
+        } catch (RuntimeException e) {
             return null;
         }
     }

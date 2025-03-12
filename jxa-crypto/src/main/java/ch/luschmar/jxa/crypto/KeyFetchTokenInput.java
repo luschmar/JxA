@@ -8,6 +8,7 @@ public record KeyFetchTokenInput(byte[] ikm) implements HKDFInput {
     public KeyFetchTokenInput(String hexIkm) {
         this(Hex.decode(hexIkm));
     }
+
     @Override
     public byte[] salt() {
         return Arrays.copyOf("".getBytes(), 0);
@@ -20,6 +21,6 @@ public record KeyFetchTokenInput(byte[] ikm) implements HKDFInput {
 
     @Override
     public int lenght() {
-        return 3*32;
+        return 3 * 32;
     }
 }

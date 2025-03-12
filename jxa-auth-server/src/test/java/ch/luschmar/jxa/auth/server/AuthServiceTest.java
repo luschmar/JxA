@@ -16,11 +16,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class AuthServiceTest {
     /**
-     * https://mozilla.github.io/ecosystem-platform/explanation/onepw-protocol
-     *
      * @throws NoSuchAlgorithmException
      * @throws InvalidKeySpecException
      * @throws InvalidKeyException
+     * @see <a href="https://mozilla.github.io/ecosystem-platform/explanation/onepw-protocol">Protocol Example</a>
      */
     @Test
     void scratchpad() throws NoSuchAlgorithmException, InvalidKeySpecException {

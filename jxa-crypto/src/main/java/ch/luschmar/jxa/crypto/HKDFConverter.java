@@ -6,5 +6,6 @@ public abstract class HKDFConverter<I extends HKDFInput, O> {
         var prkVerifyHash = HKDF.hkdfExtract(hkdfInput.salt(), hkdfInput.ikm());
         return constuctOutput(HKDF.hkdfExpand(prkVerifyHash, hkdfInput.info(), hkdfInput.lenght()));
     }
+
     abstract O constuctOutput(byte[] b);
 }

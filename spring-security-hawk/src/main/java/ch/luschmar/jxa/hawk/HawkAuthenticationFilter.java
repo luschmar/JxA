@@ -27,7 +27,7 @@ public class HawkAuthenticationFilter extends OncePerRequestFilter {
     private final AuthenticationManager authenticationManager;
     private final SecurityContextRepository securityContextRepository = new RequestAttributeSecurityContextRepository();
     private final RememberMeServices rememberMeServices = new NullRememberMeServices();
-    private boolean ignoreFailure = false;
+    private final boolean ignoreFailure = false;
     private final AuthenticationEntryPoint authenticationEntryPoint;
 
     public HawkAuthenticationFilter(AuthenticationManager authenticationManager, AuthenticationEntryPoint authenticationEntryPoint, HawkKeyRepository keyRepository) {

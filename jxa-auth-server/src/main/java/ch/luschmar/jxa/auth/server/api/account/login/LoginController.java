@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class LoginController {
     private final AuthenticationManager authenticationManager;
     private final JxaUserRepository jxaUserRepository;
-    
+
     public LoginController(JxaUserRepository jxaUserRepository, AuthenticationManager authenticationManager) {
         this.jxaUserRepository = jxaUserRepository;
         this.authenticationManager = authenticationManager;

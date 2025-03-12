@@ -7,11 +7,11 @@ public record KeyFetchTokenResult(byte[] tokenId, byte[] reqHMACKey, byte[] keyR
         return new String(Hex.encode(tokenId));
     }
 
-    String  hexReqHMACKey(){
+    String hexReqHMACKey() {
         return new String(Hex.encode(reqHMACKey));
     }
 
-    String hexKeyRequestKey(){
+    String hexKeyRequestKey() {
         return new String(Hex.encode(keyRequestKey));
     }
 }
