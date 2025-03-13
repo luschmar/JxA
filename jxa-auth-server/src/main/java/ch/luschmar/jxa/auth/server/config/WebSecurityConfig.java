@@ -54,7 +54,7 @@ public class WebSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.securityMatcher("/hawk/**")
                 .with(HawkConfigurer.hawk(), HawkConfigurer::withDefaults)
-                .authorizeHttpRequests((authz) -> authz
+                .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/hawk/**").hasRole("HAWKAUTHENTICATED")
                         .anyRequest().authenticated());
 

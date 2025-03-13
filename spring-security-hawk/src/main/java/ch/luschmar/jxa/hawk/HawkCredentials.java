@@ -15,6 +15,9 @@ public record HawkCredentials(String keyId,
                               String hash,
                               String ext,
                               String mac) {
+    HawkCredentials(String keyId, String timestamp, String nonce, String method, String path, String host, int port, String ext, String mac) {
+        this(keyId, timestamp, nonce, method, path, host, port, "", ext, mac);
+    }
 
     public String toHawkString() {
         if (StringUtils.hasText(hash)) {

@@ -1,9 +1,9 @@
 package ch.luschmar.jxa.auth.server.password;
 
-import java.util.Random;
+import java.security.SecureRandom;
 
 public final class RandomComponent {
-    private final Random random = new Random();
+    private final SecureRandom random = new SecureRandom();
 
     public byte[] nextAuthSalt() {
         var authSalt = new byte[64];

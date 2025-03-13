@@ -39,16 +39,16 @@ public class HawkAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
-            var auth = this.authenticationConverter.convert(request);
+            var auth = authenticationConverter.convert(request);
             // No Hawk authentication
             if (auth == null) {
                 filterChain.doFilter(request, response);
                 return;
             }
-            String username = auth.getName();
+            var username = auth.getName();
             if (authenticationIsRequired(username)) {
                 var authResult = authenticationManager.authenticate(auth);
-                var context = this.securityContextHolderStrategy.createEmptyContext();
+                var context = securityContextHolderStrategy.createEmptyContext();
                 context.setAuthentication(authResult);
                 securityContextHolderStrategy.setContext(context);
 
@@ -72,7 +72,9 @@ public class HawkAuthenticationFilter extends OncePerRequestFilter {
         // Only reauthenticate if username doesn't match SecurityContextHolder and user
         // isn't authenticated (see SEC-53)
         var existingAuth = securityContextHolderStrategy.getContext().getAuthentication();
-        if (existingAuth == null || !existingAuth.getName().equals(username) || !existingAuth.isAuthenticated()) {
+        if (existingAuth == null ||
+                !existingAuth.getName().equals(username) ||
+                !existingAuth.isAuthenticated()) {
             return true;
         }
         // Handle unusual condition where an AnonymousAuthenticationToken is already

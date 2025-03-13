@@ -27,8 +27,9 @@ public class LoginController {
         var user = jxaUserRepository.findByEmail(request.email()).orElseThrow(() -> new UsernameNotFoundException(""));
         var onePw = new OnepwPasswordEncoder.OnePw(user.getAuthSalt(), request.authPW());
 
-        var authenticationRequest = UsernamePasswordAuthenticationToken.unauthenticated(request.email(),
-                onePw.hexVerifyHash());
+        var authenticationRequest = UsernamePasswordAuthenticationToken
+                .unauthenticated(request.email(),
+                        onePw.hexVerifyHash());
         var authenticationResponse = authenticationManager.authenticate(authenticationRequest);
         return "success";
     }

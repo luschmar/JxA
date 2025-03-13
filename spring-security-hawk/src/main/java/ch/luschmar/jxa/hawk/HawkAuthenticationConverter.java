@@ -4,7 +4,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationConverter;
-import org.springframework.util.StringUtils;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -17,6 +16,9 @@ import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNullElse;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+import static org.springframework.http.HttpHeaders.HOST;
+import static org.springframework.util.StringUtils.hasText;
+import static org.springframework.util.StringUtils.startsWithIgnoreCase;
 
 public class HawkAuthenticationConverter implements AuthenticationConverter {
     public static final String HAWK_PREFIX = "Hawk ";
@@ -28,28 +30,28 @@ public class HawkAuthenticationConverter implements AuthenticationConverter {
 
     @Override
     public Authentication convert(HttpServletRequest request) {
-        var header = request.getHeader(AUTHORIZATION);
-        if (header == null) {
+        final var header = request.getHeader(AUTHORIZATION);
+        if (!hasText(header)) {
             return null;
         }
-        header = header.trim();
-        if (!StringUtils.startsWithIgnoreCase(header, HAWK_PREFIX)) {
+        var trimmedHeader = header.trim();
+        if (!startsWithIgnoreCase(trimmedHeader, HAWK_PREFIX)) {
             return null;
         }
 
-        header = header.substring(HAWK_PREFIX.length());
-        var hawkParameter = Arrays.stream(header.split(",")).map(s -> s.split("=", 2))
+        var payload = trimmedHeader.substring(HAWK_PREFIX.length());
+        var hawkParameter = Arrays.stream(payload.split(",")).map(s -> s.split("=", 2))
                 .filter(a -> a.length == 2)
                 .map(b -> new AbstractMap.SimpleEntry<>(b[0].trim(), removeQuotes(b[1].trim())))
                 .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
 
-        var cred = new HawkCredentials(hawkParameter.get("id"),
+        var cred = new HawkCredentials(hawkParameter.getOrDefault("id", ""),
                 hawkParameter.getOrDefault("ts", ""),
                 hawkParameter.getOrDefault("nonce", ""),
                 request.getMethod(),
                 extractURIWithQuery(request),
-                request.getHeader("Host").split(":")[0],
-                Integer.parseInt(request.getHeader("Host").split(":")[1]),
+                request.getHeader(HOST).split(":")[0],
+                Integer.parseInt(request.getHeader(HOST).split(":")[1]),
                 hawkParameter.getOrDefault("hash", ""),
                 hawkParameter.getOrDefault("ext", ""),
                 hawkParameter.getOrDefault("mac", ""));
@@ -60,9 +62,9 @@ public class HawkAuthenticationConverter implements AuthenticationConverter {
             var mac = Mac.getInstance("HmacSHA256");
             mac.init(secretKeySpec);
             var encodedHash = mac.doFinal(cred.toHawkBytes());
-            var str = Base64.getEncoder().encodeToString(encodedHash);
+            var base64CalculatedMac = Base64.getEncoder().encodeToString(encodedHash);
 
-            if (!hawkParameter.getOrDefault("mac", "").equals(str)) {
+            if (!hawkParameter.getOrDefault("mac", "").equals(base64CalculatedMac)) {
                 throw new BadCredentialsException("Hash is incorrect");
             }
             return new HawkAuthenticationToken(cred);

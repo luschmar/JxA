@@ -27,12 +27,14 @@ public class CreateController {
     public String create(@Valid @RequestBody CreateRequest request) {
         var optUser = jxaUserRepository.findByEmail(request.email());
         if (optUser.isPresent()) {
+            // TODO: prevent user enumeration
             throw new IllegalArgumentException("User already exists");
         }
 
         var encodedPwd = passwordEncoder.encode(request.authPW());
         var onePwd = new OnepwPasswordEncoder.OnePw(encodedPwd);
 
+        // TODO: Service registerUser
         jxaUserRepository.save(new JxaUser(UUID.randomUUID(),
                 request.email(),
                 onePwd.hexAuthSalt(),
