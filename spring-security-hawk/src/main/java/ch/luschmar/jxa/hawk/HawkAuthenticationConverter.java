@@ -1,22 +1,25 @@
 package ch.luschmar.jxa.hawk;
 
+import ch.luschmar.jxa.crypto.hawk.HawkHeader;
+import ch.luschmar.jxa.crypto.hawk.HawkHeaderConverter;
+import ch.luschmar.jxa.crypto.hawk.HawkPayload;
+import ch.luschmar.jxa.crypto.hawk.HawkPayloadConverter;
+import ch.luschmar.jxa.http.CachedBodyHttpServletRequest;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationConverter;
-import org.springframework.web.util.ContentCachingRequestWrapper;
+import org.springframework.util.StreamUtils;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.AbstractMap;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNullElse;
@@ -26,16 +29,28 @@ import static org.springframework.util.StringUtils.hasText;
 import static org.springframework.util.StringUtils.startsWithIgnoreCase;
 
 public class HawkAuthenticationConverter implements AuthenticationConverter {
+    private static final Logger LOG = LoggerFactory.getLogger(HawkAuthenticationConverter.class);
     public static final String HAWK_PREFIX = "Hawk ";
     private final HawkKeyRepository keyRepository;
+    private final HawkPayloadConverter hawkPayloadConverter = new HawkPayloadConverter();
+    private final HawkHeaderConverter hawkHeaderConverter = new HawkHeaderConverter();
+    private final boolean timeCheck;
 
-    public HawkAuthenticationConverter(HawkKeyRepository keyRepository) {
+    public HawkAuthenticationConverter(HawkKeyRepository keyRepository, boolean timeCheck) {
         this.keyRepository = keyRepository;
+        this.timeCheck = timeCheck;
     }
 
+    /**
+     * @param inRequest CachedBodyHttpServletRequest; because this converter consumes the content
+     * @return valid authentication or null
+     * @throws BadCredentialsException  on error in hawk-header or hawk-payload
+     * @throws UncheckedIOException     misreading in content
+     * @throws IllegalArgumentException inRequest must be a CachedBodyHttpServletRequest
+     */
     @Override
     public Authentication convert(HttpServletRequest inRequest) {
-        if (inRequest instanceof ContentCachingRequestWrapper request) {
+        if (inRequest instanceof CachedBodyHttpServletRequest request) {
             final var header = request.getHeader(AUTHORIZATION);
             if (!hasText(header)) {
                 return null;
@@ -51,8 +66,19 @@ public class HawkAuthenticationConverter implements AuthenticationConverter {
                     .map(b -> new AbstractMap.SimpleEntry<>(b[0].trim(), removeQuotes(b[1].trim())))
                     .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
 
+            var ts = Long.parseLong(hawkParameter.getOrDefault("ts", "0"));
+            var parsedTs = Instant.ofEpochSecond(ts);
 
-            var hawkHeader = new HawkHeader(hawkParameter.getOrDefault("ts", ""),
+            if (!timeCheck) {
+                LOG.error("Time-Check disabled! DO NOT USE IN PRODUCTION!!!");
+            } else {
+                var now = Instant.now();
+                if (now.plus(5, ChronoUnit.SECONDS).isAfter(parsedTs) || now.minus(5, ChronoUnit.SECONDS).isBefore(parsedTs)) {
+                    throw new BadCredentialsException("Ts invalid");
+                }
+            }
+
+            var hawkHeader = new HawkHeader(parsedTs,
                     hawkParameter.getOrDefault("nonce", ""),
                     request.getMethod(),
                     extractURIWithQuery(request),
@@ -63,42 +89,29 @@ public class HawkAuthenticationConverter implements AuthenticationConverter {
                     null);
 
             if (hasText(hawkHeader.hash())) {
-                try {
+                try (var inputStream = request.getInputStream()) {
                     var hawkPayload = new HawkPayload(request.getContentType(),
-                            new String(request.getInputStream().readAllBytes(), StandardCharsets.UTF_8));
+                            new String(StreamUtils.copyToByteArray(inputStream), StandardCharsets.UTF_8));
                     hawkHeader.withPayload(hawkPayload);
-                    var digest = MessageDigest.getInstance("SHA-256");
-                    byte[] hash = digest.digest(
-                            hawkPayload.toHawkBytes());
-                    var sha256hex = Base64.getEncoder().encodeToString(hash);
-                    if (!hawkHeader.hash().equals(sha256hex)) {
+                    var sha256 = hawkPayloadConverter.apply(hawkPayload);
+                    if (!hawkHeader.hash().equals(sha256)) {
                         throw new BadCredentialsException("Hash is incorrect");
                     }
-                } catch (NoSuchAlgorithmException e) {
-                    throw new BadCredentialsException("Something went wrong", e);
                 } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+                    throw new UncheckedIOException("Invalid request body data", e);
                 }
             }
 
-            try {
-                var key = keyRepository.findKeyById(hawkParameter.get("id"));
-                var secretKeySpec = new SecretKeySpec(key.getBytes(), "HmacSHA256");
-                var mac = Mac.getInstance("HmacSHA256");
-                mac.init(secretKeySpec);
-                var encodedHash = mac.doFinal(hawkHeader.toHawkBytes());
-                var base64CalculatedMac = Base64.getEncoder().encodeToString(encodedHash);
-
-                if (!hawkParameter.getOrDefault("mac", "").equals(base64CalculatedMac)) {
-                    throw new BadCredentialsException("Mac is incorrect");
-                }
-                return new HawkAuthenticationToken(hawkParameter.get("id"));
-            } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-                throw new BadCredentialsException("Something went wrong", e);
+            var key = keyRepository.findKeyById(hawkParameter.get("id"));
+            var calculatedMac = hawkHeaderConverter.apply(hawkHeader, key);
+            if (!hawkParameter.getOrDefault("mac", "").equals(calculatedMac)) {
+                throw new BadCredentialsException("Mac is incorrect");
             }
+            return new HawkAuthenticationToken(hawkParameter.get("id"));
         }
-        throw new IllegalArgumentException();
+        throw new IllegalArgumentException("Converter consumes request content; a CachedBodyHttpServletRequest is required");
     }
+
 
     String extractURIWithQuery(HttpServletRequest request) {
         var query = requireNonNullElse(request.getQueryString(), "");

@@ -1,7 +1,7 @@
 package ch.luschmar.jxa.auth.server.password;
 
-import ch.luschmar.jxa.crypto.BytesHKDFConverter;
-import ch.luschmar.jxa.crypto.VerifyHashInput;
+import ch.luschmar.jxa.crypto.hkdf.BytesHKDFConverter;
+import ch.luschmar.jxa.crypto.hkdf.VerifyHashInput;
 import org.bouncycastle.util.encoders.Hex;
 import org.springframework.security.crypto.password.PasswordEncoder;
 

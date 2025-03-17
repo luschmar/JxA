@@ -1,4 +1,4 @@
-package ch.luschmar.jxa.crypto;
+package ch.luschmar.jxa.crypto.hkdf;
 
 import org.springframework.security.crypto.codec.Hex;
 

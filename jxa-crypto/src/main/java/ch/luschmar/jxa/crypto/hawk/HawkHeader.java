@@ -1,9 +1,10 @@
-package ch.luschmar.jxa.hawk;
+package ch.luschmar.jxa.crypto.hawk;
 
+import java.time.Instant;
 import java.util.Arrays;
 
 
-public record HawkHeader(String timestamp,
+public record HawkHeader(Instant timestamp,
                          String nonce,
                          String method,
                          String path,
@@ -12,7 +13,7 @@ public record HawkHeader(String timestamp,
                          String hash,
                          String ext,
                          HawkPayload payload) {
-    HawkHeader(String timestamp, String nonce, String method, String path, String host, int port, String ext) {
+    public HawkHeader(Instant timestamp, String nonce, String method, String path, String host, int port, String ext) {
         this(timestamp, nonce, method, path, host, port, "", ext, null);
     }
 
@@ -27,7 +28,7 @@ public record HawkHeader(String timestamp,
                 %d
                 %s
                 %s
-                """, timestamp, nonce, method, path, host, port, hash, ext);
+                """, timestamp.getEpochSecond(), nonce, method, path, host, port, hash, ext);
     }
 
     public byte[] toHawkBytes() {

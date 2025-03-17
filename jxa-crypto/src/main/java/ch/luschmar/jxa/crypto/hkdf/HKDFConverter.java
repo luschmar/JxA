@@ -1,4 +1,4 @@
-package ch.luschmar.jxa.crypto;
+package ch.luschmar.jxa.crypto.hkdf;
 
 
 public abstract class HKDFConverter<I extends HKDFInput, O> {

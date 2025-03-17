@@ -1,4 +1,4 @@
-package ch.luschmar.jxa.hawk;
+package ch.luschmar.jxa.crypto.hawk;
 
 import java.util.Arrays;
 

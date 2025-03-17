@@ -1,6 +1,6 @@
 package ch.luschmar.jxa.auth.server;
 
-import ch.luschmar.jxa.crypto.HKDF;
+import ch.luschmar.jxa.crypto.hkdf.HKDF;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.codec.Hex;
 

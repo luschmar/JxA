@@ -35,7 +35,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package ch.luschmar.jxa.crypto;
+package ch.luschmar.jxa.crypto.hkdf;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;

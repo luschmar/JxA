@@ -1,9 +1,11 @@
 package ch.luschmar.jxa.hawk;
 
+import ch.luschmar.jxa.http.CachedBodyHttpServletRequest;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
@@ -17,7 +19,6 @@ import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.util.ContentCachingRequestWrapper;
 
 import java.io.IOException;
 
@@ -27,18 +28,17 @@ public class HawkAuthenticationFilter extends OncePerRequestFilter {
     private final AuthenticationManager authenticationManager;
     private final SecurityContextRepository securityContextRepository = new RequestAttributeSecurityContextRepository();
     private final RememberMeServices rememberMeServices = new NullRememberMeServices();
-    private final boolean ignoreFailure = false;
     private final AuthenticationEntryPoint authenticationEntryPoint;
 
-    public HawkAuthenticationFilter(AuthenticationManager authenticationManager, AuthenticationEntryPoint authenticationEntryPoint, HawkKeyRepository keyRepository) {
+    public HawkAuthenticationFilter(AuthenticationManager authenticationManager, AuthenticationEntryPoint authenticationEntryPoint, HawkKeyRepository keyRepository, @Value("${hawk.time-check:true}") boolean timeCheck) {
         this.authenticationManager = authenticationManager;
         this.authenticationEntryPoint = authenticationEntryPoint;
-        this.authenticationConverter = new HawkAuthenticationConverter(keyRepository);
+        this.authenticationConverter = new HawkAuthenticationConverter(keyRepository, timeCheck);
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        var cachedRequest = new ContentCachingRequestWrapper(request);
+        var cachedRequest = new CachedBodyHttpServletRequest(request);
         try {
             var auth = authenticationConverter.convert(cachedRequest);
             // No Hawk authentication
@@ -62,11 +62,11 @@ public class HawkAuthenticationFilter extends OncePerRequestFilter {
 
             rememberMeServices.loginFail(cachedRequest, response);
             onUnsuccessfulAuthentication(cachedRequest, response, e);
-            if (!this.ignoreFailure) {
-                authenticationEntryPoint.commence(cachedRequest, response, e);
-            }
+            // send  401 - WWW-Authenticate Hawk
+            authenticationEntryPoint.commence(cachedRequest, response, e);
+            return;
         }
-        filterChain.doFilter(request, response);
+        filterChain.doFilter(cachedRequest, response);
     }
 
     protected boolean authenticationIsRequired(String username) {

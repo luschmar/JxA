@@ -13,6 +13,7 @@ import java.util.Objects;
 public class HawkConfigurer extends AbstractHttpConfigurer<HawkConfigurer, HttpSecurity> {
     private HawkKeyRepository keyRepository;
     private AuthenticationEntryPoint authenticationEntryPoint;
+    private boolean timeCheck = true;
 
 
     @Override
@@ -27,7 +28,7 @@ public class HawkConfigurer extends AbstractHttpConfigurer<HawkConfigurer, HttpS
         var authenticationManager = http.getSharedObject(AuthenticationManager.class);
         var hawkAuthenticationFilter = new HawkAuthenticationFilter(authenticationManager,
                 authenticationEntryPoint,
-                Objects.requireNonNull(this.keyRepository, ""));
+                Objects.requireNonNull(this.keyRepository, ""), timeCheck);
 
         http.addFilterBefore(hawkAuthenticationFilter, BasicAuthenticationFilter.class);
     }
@@ -39,6 +40,11 @@ public class HawkConfigurer extends AbstractHttpConfigurer<HawkConfigurer, HttpS
 
     public HawkConfigurer authenticationEntryPoint(AuthenticationEntryPoint authenticationEntryPoint) {
         this.authenticationEntryPoint = authenticationEntryPoint;
+        return this;
+    }
+
+    public HawkConfigurer disableTimeCheck() {
+        this.timeCheck = false;
         return this;
     }
 

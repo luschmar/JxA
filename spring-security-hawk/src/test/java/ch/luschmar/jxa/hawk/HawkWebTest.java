@@ -15,7 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(properties = {
-        "org.springframework.web.servlet.mvc.method.annotation: DEBUG"
+        "logging.level.org.springframework.web=debug"
 })
 @AutoConfigureMockMvc
 class HawkWebTest {
@@ -50,5 +50,20 @@ class HawkWebTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Hello, World")));
+    }
+
+    @Test
+    void exampleWithPayload_accessDenied() throws Exception {
+        mockMvc.perform(post("/resource/1?b=1&a=2").header(HOST, "example.com:8000")
+                        .header(AUTHORIZATION, "Hawk " +
+                                "id=\"dh37fgj492je\", " +
+                                "ts=\"1353832234\", " +
+                                "nonce=\"j4h3g2\", " +
+                                "hash=\"Yi9LfIIFRtBEPt74PVmbTF/xVAwPn7ub15ePICfgnuY=\", " +
+                                "ext=\"some-app-ext-data\", " +
+                                "mac=\"wrong\"")
+                        .header(CONTENT_TYPE, "text/plain").content("Thank you for flying Hawk"))
+                .andDo(print())
+                .andExpect(status().is4xxClientError());
     }
 }

@@ -1,11 +1,13 @@
 package ch.luschmar.jxa.hawk;
 
+import ch.luschmar.jxa.crypto.hawk.HawkHeader;
 import org.junit.jupiter.api.Test;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
 import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -13,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class HawkHeaderTest {
     @Test
     void toHawkString() throws NoSuchAlgorithmException, InvalidKeyException {
-        var timestamp = "1353832234";
+        var timestamp = Instant.ofEpochSecond(1353832234L);
         var nonce = "j4h3g2";
         var method = "GET";
         var path = "/resource/1?b=1&a=2";

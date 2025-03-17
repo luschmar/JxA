@@ -13,7 +13,7 @@ public class HawkTestApplication {
                         .ignoringRequestMatchers("/**")
                 ).securityMatcher("/**")
 
-                .with(HawkConfigurer.hawk(), HawkConfigurer::withDefaults)
+                .with(HawkConfigurer.hawk().disableTimeCheck(), HawkConfigurer::withDefaults)
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/**").hasRole("HAWK_AUTHENTICATED")
                         .anyRequest().authenticated());

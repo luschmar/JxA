@@ -9,8 +9,8 @@ public class HawkSecuredController {
         return "Hello, World";
     }
 
-    @PostMapping(value = "/resource/{resId}", consumes = "text/plain", produces = "text/plain")
-    public @ResponseBody String post(@PathVariable int resId, @RequestParam String b, @RequestParam String a, @RequestBody String body) {
+    @PostMapping(value = "/resource/{resId}")
+    public @ResponseBody String post(@PathVariable int resId, @RequestBody String body) {
         return "Hello, World";
     }
 }

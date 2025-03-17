@@ -24,6 +24,11 @@
             <artifactId>spring-security-config</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
             <scope>provided</scope>
@@ -37,6 +42,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.luschmar</groupId>
+            <artifactId>jxa-crypto</artifactId>
         </dependency>
     </dependencies>
     <build>
