@@ -17,12 +17,12 @@ import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.ContentCachingRequestWrapper;
 
 import java.io.IOException;
 
 public class HawkAuthenticationFilter extends OncePerRequestFilter {
-    private final SecurityContextHolderStrategy securityContextHolderStrategy = SecurityContextHolder
-            .getContextHolderStrategy();
+    private final SecurityContextHolderStrategy securityContextHolderStrategy = SecurityContextHolder.getContextHolderStrategy();
     private final AuthenticationConverter authenticationConverter;
     private final AuthenticationManager authenticationManager;
     private final SecurityContextRepository securityContextRepository = new RequestAttributeSecurityContextRepository();
@@ -38,11 +38,12 @@ public class HawkAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        var cachedRequest = new ContentCachingRequestWrapper(request);
         try {
-            var auth = authenticationConverter.convert(request);
+            var auth = authenticationConverter.convert(cachedRequest);
             // No Hawk authentication
             if (auth == null) {
-                filterChain.doFilter(request, response);
+                filterChain.doFilter(cachedRequest, response);
                 return;
             }
             var username = auth.getName();
@@ -52,17 +53,17 @@ public class HawkAuthenticationFilter extends OncePerRequestFilter {
                 context.setAuthentication(authResult);
                 securityContextHolderStrategy.setContext(context);
 
-                rememberMeServices.loginSuccess(request, response, authResult);
-                securityContextRepository.saveContext(context, request, response);
-                onSuccessfulAuthentication(request, response, authResult);
+                rememberMeServices.loginSuccess(cachedRequest, response, authResult);
+                securityContextRepository.saveContext(context, cachedRequest, response);
+                onSuccessfulAuthentication(cachedRequest, response, authResult);
             }
         } catch (AuthenticationException e) {
             securityContextHolderStrategy.clearContext();
 
-            rememberMeServices.loginFail(request, response);
-            onUnsuccessfulAuthentication(request, response, e);
+            rememberMeServices.loginFail(cachedRequest, response);
+            onUnsuccessfulAuthentication(cachedRequest, response, e);
             if (!this.ignoreFailure) {
-                authenticationEntryPoint.commence(request, response, e);
+                authenticationEntryPoint.commence(cachedRequest, response, e);
             }
         }
         filterChain.doFilter(request, response);

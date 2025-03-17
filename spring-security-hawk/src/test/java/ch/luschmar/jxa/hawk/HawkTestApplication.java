@@ -9,10 +9,13 @@ import org.springframework.security.web.SecurityFilterChain;
 public class HawkTestApplication {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.securityMatcher("/hawk/**")
+        http.csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/**")
+                ).securityMatcher("/**")
+
                 .with(HawkConfigurer.hawk(), HawkConfigurer::withDefaults)
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/hawk/**").hasRole("HAWKAUTHENTICATED")
+                        .requestMatchers("/**").hasRole("HAWK_AUTHENTICATED")
                         .anyRequest().authenticated());
 
         return http.build();

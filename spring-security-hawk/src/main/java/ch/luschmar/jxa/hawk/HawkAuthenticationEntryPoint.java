@@ -17,7 +17,6 @@ public class HawkAuthenticationEntryPoint implements AuthenticationEntryPoint, I
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException {
-        
         response.setHeader("WWW-Authenticate", "Hawk");
         response.sendError(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase());
     }

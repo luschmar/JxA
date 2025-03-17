@@ -10,9 +10,10 @@ public record HawkHeader(String timestamp,
                          String host,
                          int port,
                          String hash,
-                         String ext) {
+                         String ext,
+                         HawkPayload payload) {
     HawkHeader(String timestamp, String nonce, String method, String path, String host, int port, String ext) {
-        this(timestamp, nonce, method, path, host, port, "", ext);
+        this(timestamp, nonce, method, path, host, port, "", ext, null);
     }
 
     public String toHawkString() {
@@ -32,5 +33,9 @@ public record HawkHeader(String timestamp,
     public byte[] toHawkBytes() {
         var str = toHawkString();
         return Arrays.copyOf(str.getBytes(), str.length());
+    }
+
+    public HawkHeader withPayload(HawkPayload hawkPayload) {
+        return new HawkHeader(timestamp, nonce, method, path, host, port, hash, ext, hawkPayload);
     }
 }

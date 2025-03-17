@@ -10,4 +10,17 @@ public final class RandomComponent {
         random.nextBytes(authSalt);
         return authSalt;
     }
+
+
+    public String next_kA() {
+        var authSalt = new byte[32];
+        random.nextBytes(authSalt);
+        return new String(authSalt);
+    }
+
+    public String next_wrapWrap_kB() {
+        var authSalt = new byte[32];
+        random.nextBytes(authSalt);
+        return new String(authSalt);
+    }
 }

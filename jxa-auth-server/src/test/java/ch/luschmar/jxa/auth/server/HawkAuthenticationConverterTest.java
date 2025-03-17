@@ -1,7 +1,7 @@
 package ch.luschmar.jxa.auth.server;
 
 import ch.luschmar.jxa.hawk.HawkAuthenticationConverter;
-import ch.luschmar.jxa.hawk.HawkCredentials;
+import ch.luschmar.jxa.hawk.HawkAuthenticationToken;
 import ch.luschmar.jxa.hawk.HawkKeyRepository;
 import ch.luschmar.jxa.hawk.StaticKeyRepository;
 import org.junit.jupiter.api.Test;
@@ -35,11 +35,7 @@ class HawkAuthenticationConverterTest {
 
         var auth = converter.convert(request);
 
-        var credentialObject = (HawkCredentials) auth.getCredentials();
-        assertEquals("dh37fgj492je", credentialObject.keyId());
-        assertEquals("1353832234", credentialObject.timestamp());
-        assertEquals("j4h3g2", credentialObject.nonce());
-        assertEquals("some-app-ext-data", credentialObject.ext());
-        assertEquals("6R4rV5iE+NPoym+WwjeHzjAGXUtLNIxmo1vpMofpLAE=", credentialObject.mac());
+        var credentialObject = (HawkAuthenticationToken) auth.getCredentials();
+        assertEquals("dh37fgj492je", credentialObject.getCredentials());
     }
 }

@@ -10,7 +10,7 @@ public record HawkPayload(String contentType, String payload) {
                 hawk.1.payload
                 %s
                 %s
-                """);
+                """, contentType, payload);
     }
 
     public byte[] toHawkBytes() {

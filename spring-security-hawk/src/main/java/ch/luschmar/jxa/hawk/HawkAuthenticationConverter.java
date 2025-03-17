@@ -4,10 +4,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationConverter;
+import org.springframework.web.util.ContentCachingRequestWrapper;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.AbstractMap;
 import java.util.Arrays;
@@ -29,48 +34,70 @@ public class HawkAuthenticationConverter implements AuthenticationConverter {
     }
 
     @Override
-    public Authentication convert(HttpServletRequest request) {
-        final var header = request.getHeader(AUTHORIZATION);
-        if (!hasText(header)) {
-            return null;
-        }
-        var trimmedHeader = header.trim();
-        if (!startsWithIgnoreCase(trimmedHeader, HAWK_PREFIX)) {
-            return null;
-        }
-
-        var payload = trimmedHeader.substring(HAWK_PREFIX.length());
-        var hawkParameter = Arrays.stream(payload.split(",")).map(s -> s.split("=", 2))
-                .filter(a -> a.length == 2)
-                .map(b -> new AbstractMap.SimpleEntry<>(b[0].trim(), removeQuotes(b[1].trim())))
-                .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
-
-        var cred = new HawkCredentials(hawkParameter.getOrDefault("id", ""),
-                hawkParameter.getOrDefault("ts", ""),
-                hawkParameter.getOrDefault("nonce", ""),
-                request.getMethod(),
-                extractURIWithQuery(request),
-                request.getHeader(HOST).split(":")[0],
-                Integer.parseInt(request.getHeader(HOST).split(":")[1]),
-                hawkParameter.getOrDefault("hash", ""),
-                hawkParameter.getOrDefault("ext", ""),
-                hawkParameter.getOrDefault("mac", ""));
-
-        try {
-            var key = keyRepository.findKeyById(hawkParameter.get("id"));
-            var secretKeySpec = new SecretKeySpec(key.getBytes(), "HmacSHA256");
-            var mac = Mac.getInstance("HmacSHA256");
-            mac.init(secretKeySpec);
-            var encodedHash = mac.doFinal(cred.toHawkBytes());
-            var base64CalculatedMac = Base64.getEncoder().encodeToString(encodedHash);
-
-            if (!hawkParameter.getOrDefault("mac", "").equals(base64CalculatedMac)) {
-                throw new BadCredentialsException("Hash is incorrect");
+    public Authentication convert(HttpServletRequest inRequest) {
+        if (inRequest instanceof ContentCachingRequestWrapper request) {
+            final var header = request.getHeader(AUTHORIZATION);
+            if (!hasText(header)) {
+                return null;
             }
-            return new HawkAuthenticationToken(cred);
-        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            throw new BadCredentialsException("Something went wrong", e);
+            var trimmedHeader = header.trim();
+            if (!startsWithIgnoreCase(trimmedHeader, HAWK_PREFIX)) {
+                return null;
+            }
+
+            var hawkRawHeader = trimmedHeader.substring(HAWK_PREFIX.length());
+            var hawkParameter = Arrays.stream(hawkRawHeader.split(",")).map(s -> s.split("=", 2))
+                    .filter(a -> a.length == 2)
+                    .map(b -> new AbstractMap.SimpleEntry<>(b[0].trim(), removeQuotes(b[1].trim())))
+                    .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
+
+
+            var hawkHeader = new HawkHeader(hawkParameter.getOrDefault("ts", ""),
+                    hawkParameter.getOrDefault("nonce", ""),
+                    request.getMethod(),
+                    extractURIWithQuery(request),
+                    request.getHeader(HOST).split(":")[0],
+                    Integer.parseInt(request.getHeader(HOST).split(":")[1]),
+                    hawkParameter.getOrDefault("hash", ""),
+                    hawkParameter.getOrDefault("ext", ""),
+                    null);
+
+            if (hasText(hawkHeader.hash())) {
+                try {
+                    var hawkPayload = new HawkPayload(request.getContentType(),
+                            new String(request.getInputStream().readAllBytes(), StandardCharsets.UTF_8));
+                    hawkHeader.withPayload(hawkPayload);
+                    var digest = MessageDigest.getInstance("SHA-256");
+                    byte[] hash = digest.digest(
+                            hawkPayload.toHawkBytes());
+                    var sha256hex = Base64.getEncoder().encodeToString(hash);
+                    if (!hawkHeader.hash().equals(sha256hex)) {
+                        throw new BadCredentialsException("Hash is incorrect");
+                    }
+                } catch (NoSuchAlgorithmException e) {
+                    throw new BadCredentialsException("Something went wrong", e);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
+
+            try {
+                var key = keyRepository.findKeyById(hawkParameter.get("id"));
+                var secretKeySpec = new SecretKeySpec(key.getBytes(), "HmacSHA256");
+                var mac = Mac.getInstance("HmacSHA256");
+                mac.init(secretKeySpec);
+                var encodedHash = mac.doFinal(hawkHeader.toHawkBytes());
+                var base64CalculatedMac = Base64.getEncoder().encodeToString(encodedHash);
+
+                if (!hawkParameter.getOrDefault("mac", "").equals(base64CalculatedMac)) {
+                    throw new BadCredentialsException("Mac is incorrect");
+                }
+                return new HawkAuthenticationToken(hawkParameter.get("id"));
+            } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+                throw new BadCredentialsException("Something went wrong", e);
+            }
         }
+        throw new IllegalArgumentException();
     }
 
     String extractURIWithQuery(HttpServletRequest request) {

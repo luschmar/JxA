@@ -17,11 +17,11 @@ import java.util.List;
 public class HawkAuthenticationProvider implements AuthenticationProvider {
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        if (authentication instanceof HawkAuthenticationToken hat) {
+        if (authentication instanceof HawkAuthenticationToken) {
             final List<GrantedAuthority> grantedAuths = new ArrayList<>();
-            grantedAuths.add(new SimpleGrantedAuthority("ROLE_HAWKAUTHENTICATED"));
-            final UserDetails principal = new User("name", "password", grantedAuths);
-            return new UsernamePasswordAuthenticationToken(principal, "password", grantedAuths);
+            grantedAuths.add(new SimpleGrantedAuthority("ROLE_HAWK_AUTHENTICATED"));
+            final UserDetails principal = new User("name", "null", grantedAuths);
+            return new UsernamePasswordAuthenticationToken(principal, "null", grantedAuths);
         }
 
         return null;

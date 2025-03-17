@@ -1,14 +1,16 @@
 package ch.luschmar.jxa.hawk;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-@RestController("/hawk")
+@RestController
 public class HawkSecuredController {
+    @GetMapping("/resource/{resId}")
+    public @ResponseBody String resource(@PathVariable int resId) {
+        return "Hello, World";
+    }
 
-    @GetMapping("/test")
-    public @ResponseBody String greeting() {
-        return "something";
+    @PostMapping(value = "/resource/{resId}", consumes = "text/plain", produces = "text/plain")
+    public @ResponseBody String post(@PathVariable int resId, @RequestParam String b, @RequestParam String a, @RequestBody String body) {
+        return "Hello, World";
     }
 }
