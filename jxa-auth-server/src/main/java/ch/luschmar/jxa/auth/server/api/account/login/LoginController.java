@@ -6,10 +6,9 @@ import jakarta.validation.Valid;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/v1/account")
@@ -22,8 +21,14 @@ public class LoginController {
         this.authenticationManager = authenticationManager;
     }
 
+    /**
+     * @see <a href="https://mozilla.github.io/ecosystem-platform/api#tag/Account/operation/postAccountFinish_setup">/account/login </a>
+     */
     @PostMapping("/login")
-    public String login(@Valid @RequestBody LoginRequest request) {
+    public String login(@Valid @RequestBody LoginRequest request,
+                        @RequestParam Optional<Boolean> keys,
+                        @RequestParam Optional<String> service,
+                        @RequestParam Optional<VerificationMethod> verificationMethod) {
         var user = jxaUserRepository.findByEmail(request.email()).orElseThrow(() -> new UsernameNotFoundException(""));
         var onePw = new OnepwPasswordEncoder.OnePw(user.getAuthSalt(), request.authPW());
 
@@ -31,6 +36,7 @@ public class LoginController {
                 .unauthenticated(request.email(),
                         onePw.hexVerifyHash());
         var authenticationResponse = authenticationManager.authenticate(authenticationRequest);
+
         return "success";
     }
 }
