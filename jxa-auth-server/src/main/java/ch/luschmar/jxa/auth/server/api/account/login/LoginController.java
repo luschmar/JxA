@@ -1,5 +1,7 @@
 package ch.luschmar.jxa.auth.server.api.account.login;
 
+import ch.luschmar.jxa.auth.server.data.JxaSession;
+import ch.luschmar.jxa.auth.server.data.JxaSessionRepository;
 import ch.luschmar.jxa.auth.server.data.JxaUserRepository;
 import ch.luschmar.jxa.auth.server.password.OnepwPasswordEncoder;
 import jakarta.validation.Valid;
@@ -15,9 +17,11 @@ import java.util.Optional;
 public class LoginController {
     private final AuthenticationManager authenticationManager;
     private final JxaUserRepository jxaUserRepository;
+    private final JxaSessionRepository jxaSessionRepository;
 
-    public LoginController(JxaUserRepository jxaUserRepository, AuthenticationManager authenticationManager) {
+    public LoginController(JxaUserRepository jxaUserRepository, JxaSessionRepository jxaSessionRepository, AuthenticationManager authenticationManager) {
         this.jxaUserRepository = jxaUserRepository;
+        this.jxaSessionRepository = jxaSessionRepository;
         this.authenticationManager = authenticationManager;
     }
 
@@ -25,10 +29,10 @@ public class LoginController {
      * @see <a href="https://mozilla.github.io/ecosystem-platform/api#tag/Account/operation/postAccountFinish_setup">/account/login </a>
      */
     @PostMapping("/login")
-    public String login(@Valid @RequestBody LoginRequest request,
-                        @RequestParam Optional<Boolean> keys,
-                        @RequestParam Optional<String> service,
-                        @RequestParam Optional<VerificationMethod> verificationMethod) {
+    public LoginResponse login(@Valid @RequestBody LoginRequest request,
+                               @RequestParam Optional<Boolean> keys,
+                               @RequestParam Optional<String> service,
+                               @RequestParam Optional<VerificationMethod> verificationMethod) {
         var user = jxaUserRepository.findByEmail(request.email()).orElseThrow(() -> new UsernameNotFoundException(""));
         var onePw = new OnepwPasswordEncoder.OnePw(user.getAuthSalt(), request.authPW());
 
@@ -37,6 +41,8 @@ public class LoginController {
                         onePw.hexVerifyHash());
         var authenticationResponse = authenticationManager.authenticate(authenticationRequest);
 
-        return "success";
+        var newSession = jxaSessionRepository.save(new JxaSession(user));
+
+        return new LoginResponse(user.getUid(), newSession.getSessionToken(), 0L);
     }
 }

@@ -5,7 +5,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
@@ -30,7 +29,7 @@ public class HawkAuthenticationFilter extends OncePerRequestFilter {
     private final RememberMeServices rememberMeServices = new NullRememberMeServices();
     private final AuthenticationEntryPoint authenticationEntryPoint;
 
-    public HawkAuthenticationFilter(AuthenticationManager authenticationManager, AuthenticationEntryPoint authenticationEntryPoint, HawkKeyRepository keyRepository, @Value("${hawk.time-check:true}") boolean timeCheck) {
+    public HawkAuthenticationFilter(AuthenticationManager authenticationManager, AuthenticationEntryPoint authenticationEntryPoint, HawkKeyRepository keyRepository, boolean timeCheck) {
         this.authenticationManager = authenticationManager;
         this.authenticationEntryPoint = authenticationEntryPoint;
         this.authenticationConverter = new HawkAuthenticationConverter(keyRepository, timeCheck);

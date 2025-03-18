@@ -3,6 +3,8 @@ package ch.luschmar.jxa.auth.server.api.account.create;
 import ch.luschmar.jxa.auth.server.data.JxaUserRepository;
 import ch.luschmar.jxa.auth.server.service.AccountService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class CreateController {
     private final JxaUserRepository jxaUserRepository;
     private final AccountService accountService;
+    private static final Logger LOG = LoggerFactory.getLogger(CreateController.class);
+
 
     public CreateController(JxaUserRepository jxaUserRepository, AccountService accountService) {
         this.jxaUserRepository = jxaUserRepository;
@@ -24,6 +28,7 @@ public class CreateController {
         var optUser = jxaUserRepository.findByEmail(request.email());
         if (optUser.isPresent()) {
             // TODO: prevent user enumeration
+            LOG.debug("user {} already exist", optUser.get());
             throw new IllegalArgumentException("User already exists");
         }
 

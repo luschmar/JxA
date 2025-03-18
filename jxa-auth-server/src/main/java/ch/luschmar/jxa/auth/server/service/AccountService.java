@@ -7,8 +7,6 @@ import ch.luschmar.jxa.auth.server.password.RandomComponent;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
-
 @Service
 public class AccountService {
     private final JxaUserRepository jxaUserRepository;
@@ -27,7 +25,7 @@ public class AccountService {
         var encodedPwd = passwordEncoder.encode(authPw);
         var onePwd = new OnepwPasswordEncoder.OnePw(encodedPwd);
 
-        jxaUserRepository.save(new JxaUser(UUID.randomUUID(),
+        jxaUserRepository.save(new JxaUser(null,
                 email,
                 onePwd.hexAuthSalt(),
                 randomComponent.next_kA(),
