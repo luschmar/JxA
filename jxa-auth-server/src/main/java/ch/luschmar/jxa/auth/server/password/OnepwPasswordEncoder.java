@@ -2,15 +2,16 @@ package ch.luschmar.jxa.auth.server.password;
 
 import ch.luschmar.jxa.crypto.hkdf.BytesHKDFConverter;
 import ch.luschmar.jxa.crypto.hkdf.VerifyHashInput;
+import ch.luschmar.jxa.crypto.scrypt.BytesScryptConverter;
+import ch.luschmar.jxa.crypto.scrypt.ScryptInputImpl;
 import org.bouncycastle.util.encoders.Hex;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
-import static org.bouncycastle.crypto.generators.SCrypt.generate;
 
 public class OnepwPasswordEncoder implements PasswordEncoder {
     public static final String ONEPW_ID = "onepw";
 
     private final BytesHKDFConverter<VerifyHashInput> bytesHKDFConverter = new BytesHKDFConverter<>();
+    private final BytesScryptConverter<ScryptInputImpl> bigStretchedPWConverter = new BytesScryptConverter<>();
     private final RandomComponent randomComponent;
 
     public OnepwPasswordEncoder(RandomComponent randomComponent) {
@@ -25,7 +26,8 @@ public class OnepwPasswordEncoder implements PasswordEncoder {
         }
 
         var authSalt = randomComponent.nextAuthSalt();
-        var bigStretchedPW = generate(Hex.decode(strHexAuthPw), authSalt, 64 * 1024, 8, 1, 32);
+
+        var bigStretchedPW = bigStretchedPWConverter.calculate(new ScryptInputImpl(Hex.decode(strHexAuthPw), authSalt));
         var verifyHash = bytesHKDFConverter.apply(new VerifyHashInput(bigStretchedPW));
         return new OnePw(Hex.toHexString(authSalt), Hex.toHexString(verifyHash)).toString();
     }
@@ -33,7 +35,8 @@ public class OnepwPasswordEncoder implements PasswordEncoder {
     @Override
     public boolean matches(CharSequence hexAuthPw, String encodedPassword) {
         var password = new OnePw(encodedPassword);
-        var bigStretchedPW = generate(Hex.decode(hexAuthPw.toString()), Hex.decode(password.hexAuthSalt), 64 * 1024, 8, 1, 32);
+
+        var bigStretchedPW = bigStretchedPWConverter.calculate(new ScryptInputImpl(Hex.decode(hexAuthPw.toString()), Hex.decode(password.hexAuthSalt)));
         var verifyHash = Hex.toHexString(bytesHKDFConverter.apply(new VerifyHashInput(bigStretchedPW)));
         return verifyHash.equals(password.hexVerifyHash);
     }

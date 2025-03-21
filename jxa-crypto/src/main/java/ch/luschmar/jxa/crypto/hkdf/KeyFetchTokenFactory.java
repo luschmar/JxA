@@ -2,7 +2,7 @@ package ch.luschmar.jxa.crypto.hkdf;
 
 import java.util.Arrays;
 
-public class KeyFetchTokenResultFactory implements HKDFResultFactory<KeyFetchTokenResult> {
+public class KeyFetchTokenFactory implements HKDFResultFactory<KeyFetchTokenResult> {
     public KeyFetchTokenResult create(byte[] result) {
         return new KeyFetchTokenResult(Arrays.copyOfRange(result, 0, 32),
                 Arrays.copyOfRange(result, 32, 64),

@@ -14,4 +14,8 @@ public record KeyFetchTokenResult(byte[] tokenId, byte[] reqHMACKey, byte[] keyR
     String hexKeyRequestKey() {
         return new String(Hex.encode(keyRequestKey));
     }
+
+    KeyRequestKeyInput keyRequestKeyInput() {
+        return new KeyRequestKeyInput(keyRequestKey);
+    }
 }
