@@ -1,5 +1,7 @@
 package ch.luschmar.jxa.auth.server.password;
 
+import org.springframework.security.crypto.codec.Hex;
+
 import java.security.SecureRandom;
 
 public final class RandomComponent {
@@ -12,15 +14,15 @@ public final class RandomComponent {
     }
 
 
-    public String next_kA() {
+    public char[] next_kAHex() {
         var authSalt = new byte[32];
         random.nextBytes(authSalt);
-        return new String(authSalt);
+        return Hex.encode(authSalt);
     }
 
-    public String next_wrapWrap_kB() {
+    public char[] next_wrapWrap_kBHex() {
         var authSalt = new byte[32];
         random.nextBytes(authSalt);
-        return new String(authSalt);
+        return Hex.encode(authSalt);
     }
 }

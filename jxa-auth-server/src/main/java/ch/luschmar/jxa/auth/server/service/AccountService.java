@@ -20,16 +20,14 @@ public class AccountService {
     }
 
     public void register(String email, String authPw) {
-
-
         var encodedPwd = passwordEncoder.encode(authPw);
         var onePwd = new OnepwPasswordEncoder.OnePw(encodedPwd);
 
         jxaUserRepository.save(new JxaUser(null,
                 email,
                 onePwd.hexAuthSalt(),
-                randomComponent.next_kA(),
-                randomComponent.next_wrapWrap_kB(),
+                new String(randomComponent.next_kAHex()),
+                new String(randomComponent.next_wrapWrap_kBHex()),
                 onePwd.hexVerifyHash()));
     }
 }
