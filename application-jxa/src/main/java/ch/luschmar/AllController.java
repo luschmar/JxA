@@ -9,6 +9,6 @@ public class AllController {
     @GetMapping("/**")
     public String index(HttpServletRequest request) {
         System.out.println(request.getRequestURI());
-        return "test";
+        return "index";
     }
 }

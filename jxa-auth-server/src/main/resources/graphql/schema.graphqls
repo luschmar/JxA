@@ -1,0 +1,51 @@
+schema {
+    query: Query
+    mutation: Mutation
+}
+
+type Mutation {
+    signUp(input: SignUpInput): LoginResponse
+}
+
+input SignUpInput {
+    email: String
+    authPW: String
+    options: Options
+    passwordV2: PasswordV2
+}
+
+input MetricsContext {
+    deviceId: String
+    flowId: String
+    flowBeginTime: BigInt
+}
+
+scalar BigInt @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
+
+input Options {
+    verificationMethod: String
+    keys: Boolean
+    metricsContext: MetricsContext
+}
+
+input PasswordV2 {
+    wrapKb: String
+    wrapKbVersion2: String
+    authPWVersion2: String
+    clientSalt: String
+}
+
+type LoginResponse {
+    uid: ID
+    sessionToken: String
+    keyFetchToken: String
+    authAt: String
+}
+
+type EmailBounceStatus {
+    hasHardBounce: Boolean
+}
+
+type Query {
+    emailBounceStatus(input: String): EmailBounceStatus
+}

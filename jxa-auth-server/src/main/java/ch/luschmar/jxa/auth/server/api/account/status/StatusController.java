@@ -18,8 +18,7 @@ public class StatusController {
 
     @PostMapping("/status")
     public StatusResponse status(@RequestBody @Valid StatusRequest request) {
-        //return new StatusResponse(false, false, false, false);
-        throw new UnsupportedOperationException();
+        return new StatusResponse(false, false, false, false);
     }
 
 
