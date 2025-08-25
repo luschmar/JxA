@@ -7,6 +7,6 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
     <artifactId>jxa-auth-data</artifactId>
-    <name>Archetype - jxa-auth-data</name>
+    <name>jxa-auth-data</name>
     <url>http://maven.apache.org</url>
 </project>

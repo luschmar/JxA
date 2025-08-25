@@ -1,0 +1,3 @@
+[submodule "fxa.git"]
+	path = fxa
+	url = git@github.com:mozilla/fxa.git
