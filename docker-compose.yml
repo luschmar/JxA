@@ -1,0 +1,33 @@
+version: '3.8'
+services:
+  cache:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    volumes:
+      - cache:/data
+  fxa-content-server:
+    build:
+      context: .
+      dockerfile: ./docker/fxa-content-server/Dockerfile
+    environment:
+      - FEATURE_FLAGS_REDIS_HOST=cache
+      - REDIS_PASSWORD=eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+      - FXA_GQL_URL=http://localhost:8080
+      - CONTENT_SERVER_GLEAN_ENABLED=false
+    ports:
+      - "3030:3030"
+  fxa-settings:
+    build:
+      context: .
+      dockerfile: ./docker/fxa-settings/Dockerfile
+    environment:
+      - FEATURE_FLAGS_REDIS_HOST=cache
+      - REDIS_PASSWORD=eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    ports:
+      - "3000:3000"
+volumes:
+  cache:
+    driver: local

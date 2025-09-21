@@ -70,7 +70,6 @@ public class WebSecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         var configuration = new CorsConfiguration();
 
-        //configuration.setAllowedOrigins(List.of("https://www.yourdomain.com")); // www - obligatory
         configuration.setAllowedOrigins(List.of("*"));  //set access from all domains
         configuration.setAllowedMethods(List.of("OPTIONS", "GET", "POST", "PUT", "DELETE"));
         configuration.setAllowCredentials(true);

@@ -14,6 +14,10 @@
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
         <dependency>
@@ -42,6 +46,10 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
@@ -68,10 +76,10 @@
                 <executions>
                     <execution>
                         <id>install-node-and-corepack</id>
+                        <phase>generate-resources</phase>
                         <goals>
                             <goal>install-node-and-corepack</goal>
                         </goals>
-                        <phase>generate-resources</phase>
                     </execution>
                     <execution>
                         <id>install</id>
@@ -82,6 +90,7 @@
                             <arguments>yarn install</arguments>
                         </configuration>
                     </execution>
+                    <!--
                     <execution>
                         <id>build</id>
                         <goals>
@@ -90,7 +99,7 @@
                         <configuration>
                             <arguments>yarn rebuild-packages</arguments>
                         </configuration>
-                    </execution>
+                    </execution>-->
                 </executions>
                 <configuration>
                     <nodeVersion>v22.15.1</nodeVersion>
