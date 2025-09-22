@@ -56,7 +56,12 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.securityMatcher("/hawk/**")
+        http.securityMatcher("/graphql**")
+                .authorizeHttpRequests((authz) ->
+                        authz.requestMatchers("/graphql**")
+                                .permitAll()
+                )
+                .securityMatcher("/hawk/**")
                 .with(HawkConfigurer.hawk(), HawkConfigurer::withDefaults)
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/hawk/**").hasRole("HAWKAUTHENTICATED")

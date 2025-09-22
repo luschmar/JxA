@@ -46,6 +46,32 @@ type EmailBounceStatus {
     hasHardBounce: Boolean
 }
 
+type RecoveryKey {
+    exists: Boolean
+    estimatedSyncDeviceCount: Int
+}
+
+type Account {
+    uid: String
+    recoveryKey: RecoveryKey
+    metricsEnabled: Boolean
+    emails: Emails
+    totp: Totp
+}
+
+type Emails {
+    email: String
+    isPrimary: Boolean
+    verified: Boolean
+}
+
+type Totp {
+    exists: Boolean
+    verified: Boolean
+}
+
 type Query {
     emailBounceStatus(input: String): EmailBounceStatus
+    account: Account
+    isValidToken(sessionToken: String): Boolean
 }
