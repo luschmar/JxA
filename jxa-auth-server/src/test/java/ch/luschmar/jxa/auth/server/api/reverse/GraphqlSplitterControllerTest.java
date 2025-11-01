@@ -13,13 +13,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-class ReverseControllerTest {
+class GraphqlSplitterControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @Test
     void asdfasdfasdf() throws Exception {
-        mockMvc.perform(post("/reverse/graphql").contentType(MediaType.APPLICATION_JSON).content("[{\"asd\":\"asd\"}, {\"bnm\":\"bnm\"}]")).andDo(print()).andExpect(status().isOk());
+        mockMvc.perform(post("/graphql").contentType(MediaType.APPLICATION_JSON).content("[{\"asd\":\"asd\"}, {\"bnm\":\"bnm\"}]")).andDo(print()).andExpect(status().isOk());
     }
 }
